@@ -95,11 +95,7 @@ def _req(endpoint, params, api_key):
 async def handle_ahrefs_tool(tool_name, arguments, config):
     api_key = config.ahrefs.api_key
     if not api_key:
-        return {"content": [{"type": "text", (
-            "Ahrefs API key not found.\n"
-            "Save your API key to: credentials/ahrefs-api-key.txt\n"
-            "See docs/AHREFS-SETUP.md for step-by-step instructions."
-        )}]}
+        return {"content": [{"type": "text", "text": "Ahrefs API key not found.\nSave your API key to: credentials/ahrefs-api-key.txt\nSee docs/AHREFS-SETUP.md for step-by-step instructions."}]}
 
     domain = arguments.get("domain", "")
     limit = arguments.get("limit", 50)
@@ -132,12 +128,13 @@ async def handle_ahrefs_tool(tool_name, arguments, config):
         result = _req("backlinks/anchors", {"domain": domain, "limit": limit}, api_key)
         return _format(result, tool_name)
 
-    return {"content": [{"type": "text", f"Unknown tool: {tool_name}"}]}
+    return {"content": [{"type": "text", "text": "Unknown tool: " + tool_name}]}
 
 
 def _format(result, tool_name):
     if "error" in result:
-        return {"content": [{"type": "text", f"Ahrefs API error: {result['error']}"}]}
+        err = "Ahrefs API error: " + str(result.get("error", "unknown"))
+        return {"content": [{"type": "text", "text": err}]}
 
     lines = []
 
@@ -222,7 +219,7 @@ def _format(result, tool_name):
     if not lines:
         lines = [f"Response: {str(result)[:500]}"]
 
-    return {"content": [{"type": "text", "\n".join(lines)}]}
+    return {"content": [{"type": "text", "text": "\n".join(lines)}]}
 
 
 def _get_nested(obj, *keys, default=""):

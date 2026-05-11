@@ -92,16 +92,15 @@ def _format_report(rows, dimensions, metrics):
 async def handle_analytics_tool(tool_name, arguments, config):
     client, project_id = _get_analytics_client(config)
     if not client:
-        return {"content": [{"type": "text", (
-            "Google Analytics credentials not found.\n"
-            "Save your service account JSON to: credentials/google-analytics-credentials.json\n"
-            "Then restart the server.\n\n"
-            "See docs/GOOGLE-ANALYTICS-SETUP.md for step-by-step instructions."
-        )}]}
+        msg = ("Google Analytics credentials not found.\n"
+               "Save your service account JSON to: credentials/google-analytics-credentials.json\n"
+               "Then restart the server.\n\n"
+               "See docs/GOOGLE-ANALYTICS-SETUP.md for step-by-step instructions.")
+        return {"content": [{"type": "text", "text": msg}]}
 
     property_id = arguments.get("property_id", "")
     if not property_id:
-        return {"content": [{"type": "text", "property_id is required"}]}
+        return {"content": [{"type": "text", "text": "property_id is required"}]}
 
     try:
         if tool_name == "ga_get_account_summaries":
@@ -125,7 +124,7 @@ async def handle_analytics_tool(tool_name, arguments, config):
                     lines.append(f"    Display Name: {prop.get('displayName')}")
                     lines.append(f"    Property ID: {prop.get('propertyId', '')}")
                     lines.append("")
-            return {"content": [{"type": "text", "\n".join(lines)}]}
+            return {"content": [{"type": "text", "text": "\n".join(lines)}]}
 
         elif tool_name in ("ga_run_report", "ga_run_realtime_report"):
             is_realtime = tool_name == "ga_run_realtime_report"
@@ -155,8 +154,9 @@ async def handle_analytics_tool(tool_name, arguments, config):
             response = client.run_report(request)
             rows = list(response.rows)
             formatted = _format_report(rows, dimensions, metrics)
-            label = "Real-Time Report" if is_realtime else f"Report: {start} to {end}"
-            return {"content": [{"type": "text", f"=== {label} ===\n\n{formatted}"}]}
+            label = "Real-Time Report" if is_realtime else "Report: " + start + " to " + end
+            report_text = "=== " + label + " ===\n\n" + formatted
+            return {"content": [{"type": "text", "text": report_text}]}
 
         elif tool_name == "ga_get_property_details":
             import requests
@@ -170,7 +170,7 @@ async def handle_analytics_tool(tool_name, arguments, config):
             for k, v in resp.items():
                 if k != "name":
                     lines.append(f"  {k}: {v}")
-            return {"content": [{"type": "text", "\n".join(lines)}]}
+            return {"content": [{"type": "text", "text": "\n".join(lines)}]}
 
         elif tool_name == "ga_get_custom_dimensions":
             import requests
@@ -199,12 +199,12 @@ async def handle_analytics_tool(tool_name, arguments, config):
             else:
                 for m in mets:
                     lines.append(f"  {m.get('parameterName', '')} - {m.get('displayName', '')} (type: {m.get('measurementUnit', '')})")
-            return {"content": [{"type": "text", "\n".join(lines)}]}
+            return {"content": [{"type": "text", "text": "\n".join(lines)}]}
 
     except Exception as e:
-        return {"content": [{"type": "text", f"GA Error: {e}"}]}
+        return {"content": [{"type": "text", "text": "GA Error: " + str(e)}]}
 
-    return {"content": [{"type": "text", f"Unknown tool: {tool_name}"}]}
+    return {"content": [{"type": "text", "text": "Unknown tool: " + tool_name}]}
 
 
 def _load_service_account(path):

@@ -22,5 +22,5 @@ async def run_tool(tool_name, arguments):
     handlers = get_all_handlers()
     handler = handlers.get(tool_name)
     if not handler:
-        return {"content": [{"type": "text", f"Unknown tool: {tool_name}"}]}
+        return {"content": [{"type": "text", "text": "Unknown tool: " + tool_name}]}
     return await handler(tool_name, arguments, config)

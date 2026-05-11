@@ -75,16 +75,15 @@ def get_ads_tools():
 async def handle_ads_tool(tool_name, arguments, config):
     creds = config.google_ads
     if not creds.developer_token:
-        return {"content": [{"type": "text", (
-            "Google Ads credentials not configured.\n"
-            "Save your credentials JSON to: credentials/google-ads-credentials.json\n"
-            "See docs/GOOGLE-ADWORDS-SETUP.md for step-by-step instructions."
-        )}]}
+        msg = ("Google Ads credentials not configured.\n"
+               "Save your credentials JSON to: credentials/google-ads-credentials.json\n"
+               "See docs/GOOGLE-ADS-SETUP.md for step-by-step instructions.")
+        return {"content": [{"type": "text", "text": msg}]}
 
     try:
         from google.ads.googleads import Client as GoogleAdsClient
     except ImportError:
-        return {"content": [{"type": "text", "Install google-ads: pip install google-ads>=24.0.0"}]}
+        return {"content": [{"type": "text", "text": "Install google-ads: pip install google-ads>=24.0.0"}]}
 
     try:
         client = GoogleAdsClient.load_from_dict({
@@ -95,7 +94,8 @@ async def handle_ads_tool(tool_name, arguments, config):
             "use_proto_plus": True,
         })
     except Exception as e:
-        return {"content": [{"type": "text", f"Failed to initialize Google Ads client: {e}"}]}
+        err = "Failed to initialize Google Ads client: " + str(e)
+        return {"content": [{"type": "text", "text": err}]}
 
     customer_id = arguments.get("customer_id", "").replace("-", "")
 
@@ -111,9 +111,11 @@ async def handle_ads_tool(tool_name, arguments, config):
         elif tool_name == "ads_get_account_summary":
             return await _get_account_summary(client, customer_id, arguments)
     except Exception as e:
-        return {"content": [{"type": "text", f"Ads API error: {e}"}]}
+        err = "Ads API error: " + str(e)
+        return {"content": [{"type": "text", "text": err}]}
 
-    return {"content": [{"type": "text", f"Unknown tool: {tool_name}"}]}
+    err = "Unknown tool: " + tool_name
+    return {"content": [{"type": "text", "text": err}]}
 
 
 async def _get_campaigns(client, customer_id, limit=50):
@@ -140,7 +142,7 @@ async def _get_campaigns(client, customer_id, limit=50):
             ctr = f"{row.metrics.ctr:.2%}"
             cpc = f"${_micros_dollars(row.metrics.average_cpc)}"
             lines.append(f"{name:<40} {status:<10} ${cost:<11} {clicks:<8} {impr:<10} {ctr:<8} {cpc:<10}")
-    return {"content": [{"type": "text", "\n".join(lines)}]}
+    return {"content": [{"type": "text", "text": "\n".join(lines)}]}
 
 
 async def _get_campaign_performance(client, customer_id, args):
@@ -170,7 +172,7 @@ async def _get_campaign_performance(client, customer_id, args):
         lines.append(f"CTR: {row.metrics.ctr:.2%}")
         lines.append(f"Avg CPC: ${_micros_dollars(row.metrics.average_cpc)}")
         lines.append(f"Conversions: {row.metrics.conversions}")
-    return {"content": [{"type": "text", "\n".join(lines)}]}
+    return {"content": [{"type": "text", "text": "\n".join(lines)}]}
 
 
 async def _get_keywords_performance(client, customer_id, args):
@@ -201,7 +203,7 @@ async def _get_keywords_performance(client, customer_id, args):
                 f"${_micros_dollars(row.metrics.cost_micros):<9} {row.metrics.impressions:<8} "
                 f"{row.metrics.ctr:.2%}    {row.metrics.conversions:<6}"
             )
-    return {"content": [{"type": "text", "\n".join(lines)}]}
+    return {"content": [{"type": "text", "text": "\n".join(lines)}]}
 
 
 async def _get_ad_groups(client, customer_id, campaign_id=None):
@@ -224,7 +226,7 @@ async def _get_ad_groups(client, customer_id, campaign_id=None):
             status = str(row.ad_group.status).split(".")[-1]
             cost = _micros_dollars(row.metrics.cost_micros)
             lines.append(f"[{ag_id}] {name} | Status: {status} | Spend: ${cost}")
-    return {"content": [{"type": "text", "\n".join(lines)}]}
+    return {"content": [{"type": "text", "text": "\n".join(lines)}]}
 
 
 async def _get_account_summary(client, customer_id, args):
@@ -263,7 +265,7 @@ async def _get_account_summary(client, customer_id, args):
         if total_cost > 0 and total_conv > 0:
             lines.append(f"COST PER CONV:   ${_micros_dollars(total_cost)/total_conv:.2f}")
 
-    return {"content": [{"type": "text", "\n".join(lines)}]}
+    return {"content": [{"type": "text", "text": "\n".join(lines)}]}
 
 
 def _run_query(client, customer_id, query):

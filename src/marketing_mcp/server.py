@@ -42,9 +42,11 @@ async def call_tool(name: str, arguments: dict):
         result = await run_tool(name, arguments)
     except Exception as e:
         logger.exception(f"Tool {name} failed")
-        result = {"content": [{"type": "text", f"Error: {e}"}]}
+        err_msg = "Error: " + str(e)
+        result = {"content": [{"type": "text", "text": err_msg}]}
 
-    text = result.get("content", [{"type": "text", "no output"}])
+    default_content = [{"type": "text", "text": "no output"}]
+    text = result.get("content", default_content)
     if isinstance(text, list):
         text = text[0].get("text", str(result))
     else:

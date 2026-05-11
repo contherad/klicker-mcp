@@ -73,17 +73,16 @@ def get_tagmanager_tools():
 async def handle_tagmanager_tool(tool_name, arguments, config):
     creds_path = config.google_tag_manager.credentials_path
     if not creds_path or not creds_path.exists():
-        return {"content": [{"type": "text", (
-            "Google Tag Manager credentials not found.\n"
-            "Save your service account JSON to: credentials/google-tag-manager-credentials.json\n"
-            "See docs/GOOGLE-TAG-MANAGER-SETUP.md for step-by-step instructions."
-        )}]}
+        msg = ("Google Tag Manager credentials not found.\n"
+               "Save your service account JSON to: credentials/google-tag-manager-credentials.json\n"
+               "See docs/GOOGLE-TAG-MANAGER-SETUP.md for step-by-step instructions.")
+        return {"content": [{"type": "text", "text": msg}]}
 
     try:
         from google.oauth2 import service_account
         from googleapiclient.discovery import build
     except ImportError:
-        return {"content": [{"type": "text", "Install: pip install google-api-python-client>=2.100.0"}]}
+        return {"content": [{"type": "text", "text": "Install: pip install google-api-python-client>=2.100.0"}]}
 
     SCOPES = ["https://www.googleapis.com/auth/tagmanager.readonly"]
     credentials = service_account.Credentials.from_service_account_file(
@@ -107,9 +106,9 @@ async def handle_tagmanager_tool(tool_name, arguments, config):
         elif tool_name == "gtm_get_container_version":
             return _get_container_version(gtm, account_id, container_id, arguments.get("version_id"))
     except Exception as e:
-        return {"content": [{"type": "text", f"GTM API error: {e}"}]}
+        return {"content": [{"type": "text", "text": "GTM API error: " + str(e)}]}
 
-    return {"content": [{"type": "text", f"Unknown tool: {tool_name}"}]}
+    return {"content": [{"type": "text", "text": "Unknown tool: " + tool_name}]}
 
 
 def _workspace_path(gtm, account_id, container_id, workspace="default"):
@@ -126,7 +125,7 @@ def _workspace_path(gtm, account_id, container_id, workspace="default"):
 
 def _list_containers(gtm, account_id):
     if not account_id:
-        return {"content": [{"type": "text", "account_id is required"}]}
+        return {"content": [{"type": "text", "text": "account_id is required"}]}
     resp = gtm.accounts().containers().list(parent=f"accounts/{account_id}").execute()
     containers = resp.get("container", [])
     lines = ["=== Google Tag Manager Containers ==="]
@@ -137,15 +136,15 @@ def _list_containers(gtm, account_id):
         lines.append("-" * 90)
         for c in containers:
             lines.append(f"{c.get('name',''):<40} {c.get('containerId',''):<15} {str(c.get('domainName','')[:28]):<30}")
-    return {"content": [{"type": "text", "\n".join(lines)}]}
+    return {"content": [{"type": "text", "text": "\n".join(lines)}]}
 
 
 def _get_workspace_tags(gtm, account_id, container_id, workspace):
     path = _workspace_path(gtm, account_id, container_id, workspace)
     if not path:
-        return {"content": [{"type": "text", f"Workspace '{workspace}' not found."}]}
+        return {"content": [{"type": "text", "text": "Workspace '" + workspace + "' not found."}]}
     tags = gtm.accounts().containers().workspaces().tags().list(parent=path).execute().get("tag", [])
-    lines = [f"=== Tags in Workspace: {workspace} ==="]
+    lines = ["=== Tags in Workspace: " + workspace + " ==="]
     if not tags:
         lines.append("No tags found (container may not be published).")
     else:
@@ -156,13 +155,13 @@ def _get_workspace_tags(gtm, account_id, container_id, workspace):
             name = t.get("name", "")[:38]
             ttype = str(t.get("type", ""))[:26]
             lines.append(f"{name:<40} {ttype:<28} {trigger_ids or 'none'}")
-    return {"content": [{"type": "text", "\n".join(lines)}]}
+    return {"content": [{"type": "text", "text": "\n".join(lines)}]}
 
 
 def _list_triggers(gtm, account_id, container_id, workspace):
     path = _workspace_path(gtm, account_id, container_id, workspace)
     if not path:
-        return {"content": [{"type": "text", f"Workspace '{workspace}' not found."}]}
+        return {"content": [{"type": "text", "text": "Workspace '" + workspace + "' not found."}]}
     triggers = gtm.accounts().containers().workspaces().triggers().list(parent=path).execute().get("trigger", [])
     lines = ["=== Triggers ==="]
     if not triggers:
@@ -174,13 +173,13 @@ def _list_triggers(gtm, account_id, container_id, workspace):
             ttype = t.get("type", "")
             filters = "yes" if t.get("filter") else "no"
             lines.append(f"  [{tid}] {name} | type: {ttype} | has filters: {filters}")
-    return {"content": [{"type": "text", "\n".join(lines)}]}
+    return {"content": [{"type": "text", "text": "\n".join(lines)}]}
 
 
 def _list_variables(gtm, account_id, container_id, workspace):
     path = _workspace_path(gtm, account_id, container_id, workspace)
     if not path:
-        return {"content": [{"type": "text", f"Workspace '{workspace}' not found."}]}
+        return {"content": [{"type": "text", "text": "Workspace '" + workspace + "' not found."}]}
     variables = gtm.accounts().containers().workspaces().variables().list(parent=path).execute().get("variable", [])
     lines = ["=== Variables ==="]
     if not variables:
@@ -191,21 +190,22 @@ def _list_variables(gtm, account_id, container_id, workspace):
             name = v.get("name", "")
             vtype = v.get("type", "")
             lines.append(f"  [{vid}] {name} | type: {vtype}")
-    return {"content": [{"type": "text", "\n".join(lines)}]}
+    return {"content": [{"type": "text", "text": "\n".join(lines)}]}
 
 
 def _get_container_version(gtm, account_id, container_id, version_id):
     if not version_id:
-        return {"content": [{"type": "text", "version_id is required"}]}
+        return {"content": [{"type": "text", "text": "version_id is required"}]}
     path = f"accounts/{account_id}/containers/{container_id}/versions/{version_id}"
     try:
         v = gtm.accounts().containers().versions().get(path=path).execute()
-        lines = [f"=== Container Version {version_id} ==="]
+        lines = ["=== Container Version " + version_id + " ==="]
         lines.append(f"Name:    {v.get('name', 'N/A')}")
         lines.append(f"Status:  {v.get('status', 'N/A')}")
         lines.append(f"Created: {v.get('created', 'N/A')}")
         lines.append(f"Modified: {v.get('modified', 'N/A')}")
         lines.append(f"Num tags: {len(v.get('container', {}).get('tag', []))}")
-        return {"content": [{"type": "text", "\n".join(lines)}]}
+        return {"content": [{"type": "text", "text": "\n".join(lines)}]}
     except Exception as e:
-        return {"content": [{"type": "text", f"Version not found or not accessible: {e}"}]}
+        err = "Version not found or not accessible: " + str(e)
+        return {"content": [{"type": "text", "text": err}]}

@@ -1,18 +1,49 @@
+# Byte-compiled / optimized
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual envs
 .env
+.envrc
 .venv/
 venv/
-credentials/*.json
-credentials/*.token
-credentials/.gitkeep
+env/
+
+# Credentials — NEVER commit
+credentials/*
+!credentials/.gitkeep
+!credentials/README.md
+!credentials/*.example
+!credentials/*.example.json
+
+# Logs & caches
+logs/
+*.log
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Build artifacts
 *.egg-info/
 dist/
 build/
-.pytest_cache/
-.coverage
-htmlcov/
-.mypy_cache/
+*.whl
+
+# OS / editor
 .DS_Store
-*.log
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Misc
+*.bak
+*.orig

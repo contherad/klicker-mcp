@@ -1,72 +1,75 @@
-"""Marketing MCP Server — connects Google Analytics, Google Ads, GTM, and Ahrefs to Claude Desktop."""
+"""Marketing MCP Server — stdio entry point.
+
+This module is invoked as ``python -m marketing_mcp.server`` by Claude Desktop,
+or via the ``marketing-mcp`` console script (which calls ``cli.main``).
+"""
+
+from __future__ import annotations
 
 import asyncio
-import logging
-from pathlib import Path
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import Tool, TextContent
+from mcp.types import TextContent, Tool
 
 from marketing_mcp.coordinator import get_tools_metadata, run_tool
+from marketing_mcp.utils.config import get_cached_config
+from marketing_mcp.utils.logging import configure_logging, get_logger
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-)
-logger = logging.getLogger(__name__)
+logger = get_logger("server")
 
-MARKETING_SERVER = Server("marketing-mcp")
+MARKETING_SERVER: Server = Server("marketing-mcp")
 
 
 @MARKETING_SERVER.list_tools()
-async def list_tools():
-    """Expose all marketing tool definitions to Claude Desktop."""
+async def list_tools() -> list[Tool]:
+    """Expose all marketing tool definitions to the MCP client."""
     metadata = get_tools_metadata()
-    logger.info(f"Loading {len(metadata)} tools...")
+    logger.info("Listing %d tools", len(metadata))
     return [
-        Tool(
-            name=m["name"],
-            description=m["description"],
-            inputSchema=m["inputSchema"],
-        )
+        Tool(name=m["name"], description=m["description"], inputSchema=m["inputSchema"])
         for m in metadata
     ]
 
 
 @MARKETING_SERVER.call_tool()
-async def call_tool(name: str, arguments: dict):
-    """Handle a tool call from Claude Desktop."""
-    logger.info(f"--> Tool call: {name} | args: {list(arguments.keys())}")
+async def call_tool(name: str, arguments: dict) -> list[TextContent]:
+    """Handle a tool call from the MCP client."""
+    logger.info("Tool call: %s (args=%s)", name, sorted(arguments))
     try:
         result = await run_tool(name, arguments)
     except Exception as e:
-        logger.exception(f"Tool {name} failed")
-        err_msg = "Error: " + str(e)
-        result = {"content": [{"type": "text", "text": err_msg}]}
+        logger.exception("Tool %s failed", name)
+        return [TextContent(type="text", text=f"Error in {name}: {e}")]
 
-    default_content = [{"type": "text", "text": "no output"}]
-    text = result.get("content", default_content)
-    if isinstance(text, list):
-        text = text[0].get("text", str(result))
-    else:
-        text = str(text)
-
-    return [TextContent(type="text", text=text)]
+    content_items = result.get("content") or [{"type": "text", "text": "no output"}]
+    if not isinstance(content_items, list):
+        content_items = [{"type": "text", "text": str(content_items)}]
+    return [TextContent(type="text", text=item.get("text", "")) for item in content_items]
 
 
-async def main():
-    """Start the MCP server. Called by the CLI entry point."""
-    logger.info("Starting Marketing MCP Server...")
-    logger.info("Integrations: Google Analytics | Google Ads | Google Tag Manager | Ahrefs")
+async def run() -> None:
+    """Start the MCP server. Public coroutine used by the CLI."""
+    configure_logging()
+    logger.info("Starting Marketing MCP Server")
+    logger.info("Integrations: Google Analytics | Google Ads | Tag Manager | Ahrefs")
 
-    # Ensure credentials directory exists
-    creds = Path(__file__).parent.parent.parent / "credentials"
-    creds.mkdir(exist_ok=True)
-    (creds / ".gitkeep").touch()
+    # Eager-load config so any credential errors surface in the log immediately.
+    cfg = get_cached_config()
+    logger.info("Credentials dir: %s", cfg.credentials_dir)
 
-    await (stdio_server(MARKETING_SERVER).run_as_task())
+    async with stdio_server() as (read_stream, write_stream):
+        await MARKETING_SERVER.run(
+            read_stream,
+            write_stream,
+            MARKETING_SERVER.create_initialization_options(),
+        )
+
+
+def main() -> None:
+    """Sync entry point preserved for ``python -m marketing_mcp.server``."""
+    asyncio.run(run())
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

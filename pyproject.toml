@@ -1,21 +1,58 @@
 [project]
 name = "marketing-mcp"
-version = "1.0.0"
-description = "MCP server for Google Analytics, Google Ads, Google Tag Manager, and Ahrefs"
+version = "1.1.0"
+description = "MCP server connecting Claude to Google Analytics, Google Ads, Google Tag Manager, and Ahrefs"
 readme = "README.md"
 requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Klicker" }]
+keywords = ["mcp", "claude", "google-analytics", "google-ads", "ahrefs", "marketing"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+]
 dependencies = [
     "mcp>=0.9.0",
+    "google-analytics-data>=0.18.0",
     "google-ads>=24.0.0",
     "google-api-python-client>=2.100.0",
     "google-auth>=2.27.0",
+    "google-auth-oauthlib>=1.2.0",
     "requests>=2.31.0",
     "pyyaml>=6.0",
     "pydantic>=2.0",
+    "tenacity>=8.2.0",
+    "cachetools>=5.3.0",
+    "click>=8.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-asyncio>=0.21",
+    "pytest-cov>=4.1",
+    "pytest-mock>=3.11",
+    "responses>=0.23",
+    "ruff>=0.4",
+    "mypy>=1.8",
+    "types-requests",
+    "types-PyYAML",
+    "types-cachetools",
 ]
 
 [project.scripts]
-marketing-mcp = "marketing_mcp.server:main"
+marketing-mcp = "marketing_mcp.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/contherad/klicker-mcp"
+Issues = "https://github.com/contherad/klicker-mcp/issues"
 
 [build-system]
 requires = ["hatchling"]
@@ -23,3 +60,81 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/marketing_mcp"]
+
+# ----- ruff -----
+[tool.ruff]
+target-version = "py310"
+line-length = 110
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # isort
+    "B",        # flake8-bugbear
+    "UP",       # pyupgrade
+    "SIM",      # flake8-simplify
+    "RUF",      # ruff-specific
+]
+ignore = [
+    "E501",     # line-too-long (line-length covers it; allow doc strings)
+    "B008",     # function-call-in-default-argument (used by click)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["B011", "E712"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+# ----- mypy -----
+[tool.mypy]
+python_version = "3.10"
+strict = false
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+no_implicit_optional = true
+check_untyped_defs = true
+ignore_missing_imports = true
+files = ["src/marketing_mcp"]
+
+[[tool.mypy.overrides]]
+module = ["google.*", "googleapiclient.*", "mcp.*"]
+ignore_missing_imports = true
+
+# ----- pytest -----
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+]
+markers = [
+    "live: tests that hit live external APIs (deselect by default with -m 'not live')",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+# ----- coverage -----
+[tool.coverage.run]
+branch = true
+source = ["src/marketing_mcp"]
+omit = ["src/marketing_mcp/__init__.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+show_missing = true

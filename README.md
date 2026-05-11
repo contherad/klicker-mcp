@@ -1,233 +1,161 @@
 # Klicker MCP Server
 
-Connect Claude Desktop to Google Analytics, Google Ads, Google Tag Manager, and Ahrefs — all in one unified MCP server.
+Unified MCP server connecting Claude Desktop to **Google Analytics 4**, **Google Ads**, **Google Tag Manager**, and **Ahrefs** — ask Claude anything about your marketing data.
 
-**For Kade at Klicker** — setup for Windows, designed for marketers who aren't developers.
-
----
-
-## What Is This?
-
-This is a **local MCP server** that lets Claude read and analyze your marketing data:
-
-- **Google Analytics 4** — traffic, conversions, user behavior, custom reports
-- **Google Ads** — campaigns, keywords, spend, ROAS, performance over time
-- **Google Tag Manager** — active tags, triggers, and variables in your container
-- **Ahrefs** — domain rating, backlinks, organic keywords, SEO metrics
-
-Instead of opening four different dashboards, you can ask Claude directly:
-
-> "What's my organic traffic trend for the last 90 days?"
+> Instead of opening four dashboards:
+> "What's my organic traffic for the last 90 days?"
 > "Which Google Ads campaigns have the best ROAS this month?"
 > "What tracking scripts are deployed on my site?"
-> "What keywords is example.com ranking for in the top 10?"
+> "What keywords does klickerinc.com rank for?"
 
 ---
 
-## Prerequisites
+## What's in the box
 
-- **Python 3.10 or higher** — [Download from python.org](https://www.python.org/downloads/)
-  - On Windows, make sure to check *"Add Python to PATH"* during install
-- **A Google account** with access to Google Analytics, Google Ads, and/or Google Tag Manager
-- **Ahrefs API access** (paid subscription) — [check plans](https://ahrefs.com/pricing)
+| Integration | Tools |
+|---|---|
+| **Google Analytics 4** | Account/property listing, custom reports, realtime reports, custom dimensions |
+| **Google Ads** | Campaigns, campaign performance, keyword performance, ad groups, account summary |
+| **Google Tag Manager** | Accounts, containers, tags, triggers, variables, container versions |
+| **Ahrefs** | Domain rating, backlinks, organic keywords, linking domains, anchor text, domain comparison |
 
----
-
-## Quick Setup (Windows)
-
-### Step 1: Download the Project
-
-Click the green **Code** button on [the GitHub repo](https://github.com/contherad/klicker-mcp) → **Download ZIP**
-
-Extract the ZIP to your Desktop (or anywhere you prefer).
-
-### Step 2: Install Python Dependencies
-
-Open **Command Prompt** (`Win + R` → type `cmd` → Enter) and run:
-
-```
-cd %USERPROFILE%\Desktop\klicker-mcp
-pip install -r requirements.txt
-```
-
-> If you extracted to a different location, adjust the path above.
-
-### Step 3: Set Up Your Credentials
-
-#### Google Analytics
-
-1. Go to [console.cloud.google.com](https://console.cloud.google.com/) → Create a project
-2. Enable **Google Analytics Admin API** and **Google Analytics Data API**
-3. Go to **Credentials** → **Service Accounts** → create one
-4. Download the JSON key file → save as `credentials/google-analytics-credentials.json`
-5. In GA4, go to **Admin → Property Access Management** → add the service account email with "Viewer" access
-
-See: [docs/GOOGLE-ANALYTICS-SETUP.md](docs/GOOGLE-ANALYTICS-SETUP.md)
-
-#### Google Ads
-
-1. Enable **Google Ads API** in your Google Cloud project
-2. Create **OAuth2 credentials** (Desktop app type) → get Client ID + Client Secret
-3. Get your **Developer Token** from ads.google.com → Tools → Settings → API Center
-4. Run: `python scripts/setup_google_ads.py` — or create `credentials/google-ads-credentials.json` manually
-
-See: [docs/GOOGLE-ADS-SETUP.md](docs/GOOGLE-ADS-SETUP.md)
-
-#### Google Tag Manager
-
-1. Enable **Google Tag Manager API** in your Google Cloud project
-2. Create **OAuth2 credentials** (Desktop app type) → get Client ID + Client Secret
-3. Run: `python scripts/setup_gtm.py` — or create `credentials/google-tag-manager-credentials.json` manually
-
-See: [docs/GOOGLE-TAG-MANAGER-SETUP.md](docs/GOOGLE-TAG-MANAGER-SETUP.md)
-
-#### Ahrefs
-
-1. Get your API key from [ahrefs.com](https://ahrefs.com/) → Dashboard → API
-2. Run: `python scripts/setup_ahrefs.py` — or create `credentials/ahrefs-api-key.txt` manually
-
-See: [docs/AHREFS-SETUP.md](docs/AHREFS-SETUP.md)
+Every tool supports both human-readable text output and structured JSON (`format: "json"`).
 
 ---
 
-## Step 4: Connect to Claude Desktop
+## Quick start (Windows)
 
-1. Open **Claude Desktop** (click the **Wrench icon** or go to **Settings → MCP Servers**)
-2. Click **Add MCP Server**
-3. Name it: `marketing-mcp`
-4. For the **Command**, enter: `python`
-5. For the **Arguments**, enter: `-m marketing_mcp.server`
-6. For the **Working Directory**, enter the path to the `klicker-mcp` folder:
-   - If on Desktop: `C:\Users\YourName\Desktop\klicker-mcp`
-
-> **Tip:** The exact path to the klicker-mcp folder is shown at the top of File Explorer when you're inside the folder.
-
-### Example Configuration
-
-```
-Command: python
-Arguments: -m marketing_mcp.server
-Working Directory: C:\Users\YourName\Desktop\klicker-mcp
-```
-
-If Claude Desktop doesn't have a Working Directory field, set it via command line:
+### 1. Install
 
 ```cmd
-set MCPPATH=C:\Users\YourName\Desktop\klicker-mcp
+cd %USERPROFILE%\Documents\git
+git clone https://github.com/contherad/klicker-mcp
+cd klicker-mcp
+pip install -e .
 ```
+
+If you don't have Git, [download a ZIP](https://github.com/contherad/klicker-mcp) instead.
+
+> Requires Python 3.10+.
+
+### 2. Set up credentials
+
+Each integration needs its own credentials file in `credentials/`. The CLI walks you through each one:
+
+```cmd
+marketing-mcp init google-analytics
+marketing-mcp init google-ads
+marketing-mcp init google-tag-manager
+marketing-mcp init ahrefs
+```
+
+Full setup guides are in [`docs/`](docs/):
+
+- [`GOOGLE-ANALYTICS-SETUP.md`](docs/GOOGLE-ANALYTICS-SETUP.md)
+- [`GOOGLE-ADS-SETUP.md`](docs/GOOGLE-ADS-SETUP.md)
+- [`GOOGLE-TAG-MANAGER-SETUP.md`](docs/GOOGLE-TAG-MANAGER-SETUP.md)
+- [`AHREFS-SETUP.md`](docs/AHREFS-SETUP.md)
+
+### 3. Verify the credentials are good
+
+```cmd
+marketing-mcp doctor
+```
+
+Output is per-integration PASS/FAIL. Exits 0 only when everything is configured.
+
+### 4. Wire up Claude Desktop
+
+Edit `%APPDATA%\Claude\claude_desktop_config.json` and add (adjust the paths to match your install):
+
+```json
+{
+  "mcpServers": {
+    "marketing-mcp": {
+      "command": "C:\\Python313\\python.exe",
+      "args": ["-m", "marketing_mcp.cli"],
+      "cwd": "C:\\Users\\YourName\\Documents\\git\\klicker-mcp",
+      "env": {
+        "PYTHONPATH": "C:\\Users\\YourName\\Documents\\git\\klicker-mcp\\src"
+      }
+    }
+  }
+}
+```
+
+> If you installed via `pip install -e .` you can use `"command": "marketing-mcp"` with `"args": []` instead.
+
+### 5. Restart Claude Desktop
+
+Fully quit (system tray → Quit, not just close the window) and reopen. Ask:
+
+> "What's my Google Analytics traffic for the last 30 days?"
 
 ---
 
-## Step 5: Test It
-
-Restart Claude Desktop. Then ask:
+## CLI reference
 
 ```
-What's my Google Analytics traffic summary for the last 30 days?
-Show me my Google Ads campaign performance this month.
-What's the domain rating of klickerinc.com according to Ahrefs?
+marketing-mcp serve                      # start MCP server over stdio (default)
+marketing-mcp doctor                     # validate credentials
+marketing-mcp init [integration]         # interactive setup
+marketing-mcp version                    # print version
+marketing-mcp --log-level DEBUG serve    # increase verbosity
 ```
 
-If you get an error, check the **Troubleshooting** section below.
+Environment variables:
+
+| Var | Purpose |
+|---|---|
+| `MARKETING_MCP_LOG_LEVEL` | `DEBUG`, `INFO` (default), `WARNING`, `ERROR` |
+| `MARKETING_MCP_LOG_DIR` | Override log directory |
+| `MARKETING_MCP_CREDENTIALS_DIR` | Override credentials directory |
 
 ---
 
-## Available Tools
+## Production features
 
-### Google Analytics (GA4)
-| Tool | What it does |
-|------|-------------|
-| `ga_get_account_summaries` | List all GA4 accounts and properties you have access to |
-| `ga_get_property_details` | Get details about a specific GA4 property |
-| `ga_run_report` | Run a custom GA4 report with dimensions and metrics you specify |
-| `ga_run_realtime_report` | Get current active users, page views in last 30 minutes |
-| `ga_get_custom_dimensions` | List available custom dimensions in your property |
+This server is built for real use, not just demos.
 
-### Google Ads
-| Tool | What it does |
-|------|-------------|
-| `ads_get_campaigns` | List all campaigns with spend, clicks, impressions |
-| `ads_get_campaign_performance` | Performance metrics for a specific campaign over a date range |
-| `ads_get_keywords_performance` | Keyword-level performance: clicks, cost, conversions, CTR |
-| `ads_get_ad_groups` | List ad groups within a campaign |
-| `ads_get_account_summary` | High-level spend, clicks, conversions for entire account |
+- **Hot-reload credentials** — drop a new key file in `credentials/`, no restart needed
+- **TTL caching** — Ahrefs (1 hr), Google Ads (5 min), GA metadata (10 min). Per-integration tunable.
+- **Retry with exponential backoff** on transient failures (5xx, 408, 429, network blips); 4xx errors fail fast
+- **Rotating file logs** — `logs/marketing-mcp.log`, 5 MB × 3 files
+- **Input validation** — customer IDs, dates, etc. validated before hitting the API
+- **`marketing-mcp doctor`** — actionable startup health check
 
-### Google Tag Manager
-| Tool | What it does |
-|------|-------------|
-| `gtm_list_containers` | List all GTM containers in your account |
-| `gtm_get_workspace_tags` | Show all tags (tracking scripts) in the active workspace |
-| `gtm_list_triggers` | List all triggers (events that fire tags) |
-| `gtm_list_variables` | List all variables (data sources) in the workspace |
-| `gtm_get_container_version` | Get details about a specific container version |
-
-### Ahrefs
-| Tool | What it does |
-|------|-------------|
-| `ahrefs_get_domain_rating` | Domain Rating (DR) score for any website |
-| `ahrefs_get_backlinks` | Top backlinks pointing to a domain |
-| `ahrefs_get_organic_keywords` | Organic keyword rankings with positions, traffic, CPC |
-| `ahrefs_get_linking_domains` | Number of unique domains linking to a site |
-| `ahrefs_compare_domains` | Compare DR and link metrics across multiple domains |
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`docs/OPERATIONS.md`](docs/OPERATIONS.md) for the deep dive.
 
 ---
 
 ## Troubleshooting
 
-### "Module not found" error
-Make sure you ran `pip install -r requirements.txt` in the correct folder:
-```cmd
-cd %USERPROFILE%\Desktop\klicker-mcp
-pip install -r requirements.txt
-```
+| Symptom | Fix |
+|---|---|
+| Tools don't appear in Claude | Fully quit Claude Desktop and reopen. Check `%APPDATA%\Claude\logs\mcp-server-marketing-mcp.log` |
+| "Credentials not found" but file is there | Run `marketing-mcp doctor` — it pinpoints the issue |
+| GTM "Not found or permission denied" | Service account not granted on the GTM account. See workaround in [`GOOGLE-TAG-MANAGER-SETUP.md`](docs/GOOGLE-TAG-MANAGER-SETUP.md) |
+| GA UI rejects service account email | Use the API Explorer workaround in [`GOOGLE-ANALYTICS-SETUP.md`](docs/GOOGLE-ANALYTICS-SETUP.md) |
+| Ahrefs 401 | API key is invalid; regenerate at https://app.ahrefs.com/api/dashboard |
 
-### "Credentials not found" error
-Check that your credential files are in the `credentials/` folder (inside klicker-mcp):
-```
-klicker-mcp/
-└── credentials/
-    ├── google-analytics-credentials.json   ← must exist if using GA
-    ├── google-ads-credentials.json          ← must exist if using Ads
-    ├── google-tag-manager-credentials.json ← must exist if using GTM
-    └── ahrefs-api-key.txt                   ← must exist if using Ahrefs
-```
-
-### "Permission denied" in Google Analytics
-Make sure you've added the service account email to your GA4 property:
-1. In GA4 → Admin → Property Access Management
-2. Click "+" → paste the service account email (looks like `something@project-id.iam.gserviceaccount.com`)
-3. Set role to "Viewer"
-
-### "Invalid credentials" in Google Ads
-- Re-check your developer token (no extra spaces)
-- Make sure the OAuth2 Client ID and Secret are for a **Desktop app** credential type
-- Your refresh token may have expired — re-run `python scripts/setup_google_ads.py`
-
-### Claude Desktop doesn't connect to the MCP server
-1. Make sure the working directory path is correct
-2. Try restarting Claude Desktop
-3. Check the command: `python -m marketing_mcp.server` — does it run without errors in a terminal?
-
-To test manually, open Command Prompt and run:
-```cmd
-cd %USERPROFILE%\Desktop\klicker-mcp
-python -m marketing_mcp.server
-```
-If you see "Starting Marketing MCP Server..." it's running correctly. Press `Ctrl + C` to stop it.
+Full operations runbook: [`docs/OPERATIONS.md`](docs/OPERATIONS.md).
 
 ---
 
-## Updating the Server
+## Contributing
 
-To update to the latest version, re-download the ZIP from GitHub and replace the folder, then re-run:
-```cmd
-pip install -r requirements.txt --upgrade
+See [`CONTRIBUTING.md`](CONTRIBUTING.md). TL;DR:
+
+```bash
+git clone https://github.com/contherad/klicker-mcp
+cd klicker-mcp
+pip install -e ".[dev]"
+pytest
+ruff check src tests
 ```
 
 ---
 
-## Uninstall
+## License
 
-1. Remove the `klicker-mcp` folder from your Desktop
-2. Remove the MCP server entry from Claude Desktop settings
-3. Optionally delete the `credentials/` folder if you want to completely remove your stored credentials
+MIT.

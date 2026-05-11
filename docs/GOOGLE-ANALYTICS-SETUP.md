@@ -43,6 +43,24 @@ This guide walks you through getting your Google Analytics credentials so Claude
 4. Paste the service account email (it looks like: `klicker-mcp@your-project-id.iam.gserviceaccount.com`)
 5. Set role to **"Viewer"** → click **Add**
 
+### Workaround: GA4 UI rejects service account emails
+
+Google has a known issue where the GA4 **Property Access Management** UI only accepts standard Gmail / Google Workspace addresses and refuses service account emails ending in `@*.iam.gserviceaccount.com`. If you hit this, use the Admin API directly:
+
+1. Open the [`accessBindings.create` API Explorer](https://developers.google.com/analytics/devguides/config/admin/v1/rest/v1beta/properties.accessBindings/create)
+2. On the right, expand the **Try this method** panel
+3. In **parent**, enter: `properties/YOUR_GA4_PROPERTY_ID` (find it in your GA4 URL: `analytics.google.com/analytics/web/#/p<PROPERTY_ID>`)
+4. In the **Request body**, paste:
+   ```json
+   {
+     "user": "your-service-account@your-project.iam.gserviceaccount.com",
+     "roles": ["predefinedRoles/viewer"]
+   }
+   ```
+5. Click **Execute** and sign in with a Google account that has GA4 **Admin** rights on the property
+6. A `200` response echoing the email and roles confirms it worked
+7. Go back to GA4 → Admin → Property Access Management and the service account will now appear
+
 ---
 
 ## Step 5: Save the Credentials File

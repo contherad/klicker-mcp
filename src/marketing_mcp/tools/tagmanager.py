@@ -108,9 +108,7 @@ def get_tagmanager_tools() -> list[dict[str, Any]]:
 # ---------- handler ----------
 
 
-async def handle_tagmanager_tool(
-    tool_name: str, arguments: dict[str, Any], config: Config
-) -> dict[str, Any]:
+async def handle_tagmanager_tool(tool_name: str, arguments: dict[str, Any], config: Config) -> dict[str, Any]:
     creds_path = config.google_tag_manager.credentials_path
     if not creds_path or not creds_path.exists():
         return _text(
@@ -125,9 +123,7 @@ async def handle_tagmanager_tool(
     except ImportError:
         return _text("Install: pip install google-api-python-client>=2.100.0")
 
-    credentials = service_account.Credentials.from_service_account_file(
-        str(creds_path), scopes=SCOPES
-    )
+    credentials = service_account.Credentials.from_service_account_file(str(creds_path), scopes=SCOPES)
     gtm = build("tagmanager", "v2", credentials=credentials, cache_discovery=False)
 
     account_id = arguments.get("account_id") or config.google_tag_manager.account_id or ""
@@ -241,9 +237,7 @@ def _get_workspace_tags(
     path = _workspace_path(gtm, account_id, container_id, workspace)
     if not path:
         return _text(f"Workspace '{workspace}' not found.")
-    tags = (
-        gtm.accounts().containers().workspaces().tags().list(parent=path).execute().get("tag", [])
-    )
+    tags = gtm.accounts().containers().workspaces().tags().list(parent=path).execute().get("tag", [])
 
     if output_format == "json":
         return _text(json.dumps(tags, indent=2, default=str))
@@ -270,13 +264,7 @@ def _list_triggers(
     if not path:
         return _text(f"Workspace '{workspace}' not found.")
     triggers = (
-        gtm.accounts()
-        .containers()
-        .workspaces()
-        .triggers()
-        .list(parent=path)
-        .execute()
-        .get("trigger", [])
+        gtm.accounts().containers().workspaces().triggers().list(parent=path).execute().get("trigger", [])
     )
 
     if output_format == "json":
@@ -302,13 +290,7 @@ def _list_variables(
     if not path:
         return _text(f"Workspace '{workspace}' not found.")
     variables = (
-        gtm.accounts()
-        .containers()
-        .workspaces()
-        .variables()
-        .list(parent=path)
-        .execute()
-        .get("variable", [])
+        gtm.accounts().containers().workspaces().variables().list(parent=path).execute().get("variable", [])
     )
 
     if output_format == "json":

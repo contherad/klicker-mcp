@@ -53,6 +53,7 @@ def with_retry(
     4xx errors (other than 408/429) propagate immediately — they indicate the
     request itself is wrong and retrying won't help.
     """
+
     def decorator(fn: Callable[..., T]) -> Callable[..., T]:
         wrapped = retry(
             stop=stop_after_attempt(attempts),

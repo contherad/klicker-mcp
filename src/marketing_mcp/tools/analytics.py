@@ -70,7 +70,10 @@ def get_analytics_tools() -> list[dict[str, Any]]:
                 "type": "object",
                 "properties": {
                     "property_id": {"type": "string", "description": "GA4 property ID (numeric)"},
-                    "start_date": {"type": "string", "description": "Start date YYYY-MM-DD (default: 30 days ago)"},
+                    "start_date": {
+                        "type": "string",
+                        "description": "Start date YYYY-MM-DD (default: 30 days ago)",
+                    },
                     "end_date": {"type": "string", "description": "End date YYYY-MM-DD (default: yesterday)"},
                     "dimensions": {
                         "type": "array",
@@ -188,9 +191,7 @@ def _cached_admin_get(path: str, token: str) -> dict[str, Any]:
 # ---------- handler ----------
 
 
-async def handle_analytics_tool(
-    tool_name: str, arguments: dict[str, Any], config: Config
-) -> dict[str, Any]:
+async def handle_analytics_tool(tool_name: str, arguments: dict[str, Any], config: Config) -> dict[str, Any]:
     client = _build_data_client(config)
     if not client:
         return _text(
@@ -373,9 +374,7 @@ def _format_report(rows: list[Any], dimensions: list[str], metrics: list[str]) -
     return "\n".join(lines)
 
 
-def _report_to_json(
-    rows: list[Any], dimensions: list[str], metrics: list[str], label: str
-) -> str:
+def _report_to_json(rows: list[Any], dimensions: list[str], metrics: list[str], label: str) -> str:
     out = {
         "label": label,
         "dimensions": dimensions,

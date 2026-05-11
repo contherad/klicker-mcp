@@ -106,9 +106,7 @@ def get_ads_tools() -> list[dict[str, Any]]:
 # ---------- handler ----------
 
 
-async def handle_ads_tool(
-    tool_name: str, arguments: dict[str, Any], config: Config
-) -> dict[str, Any]:
+async def handle_ads_tool(tool_name: str, arguments: dict[str, Any], config: Config) -> dict[str, Any]:
     creds = config.google_ads
     if not creds.developer_token:
         return _text(
@@ -241,17 +239,23 @@ def _get_campaign_performance(
     row = rows[0]
     budget = getattr(row.campaign_budget, "amount_micros", None) if hasattr(row, "campaign_budget") else None
     if output_format == "json":
-        return _text(json.dumps({
-            "campaign": str(row.campaign.name),
-            "status": _enum_name(row.campaign.status),
-            "budget": _micros_dollars(budget),
-            "spend": _micros_dollars(row.metrics.cost_micros),
-            "clicks": row.metrics.clicks,
-            "impressions": row.metrics.impressions,
-            "ctr": row.metrics.ctr,
-            "avg_cpc": _micros_dollars(row.metrics.average_cpc),
-            "conversions": row.metrics.conversions,
-        }, indent=2, default=str))
+        return _text(
+            json.dumps(
+                {
+                    "campaign": str(row.campaign.name),
+                    "status": _enum_name(row.campaign.status),
+                    "budget": _micros_dollars(budget),
+                    "spend": _micros_dollars(row.metrics.cost_micros),
+                    "clicks": row.metrics.clicks,
+                    "impressions": row.metrics.impressions,
+                    "ctr": row.metrics.ctr,
+                    "avg_cpc": _micros_dollars(row.metrics.average_cpc),
+                    "conversions": row.metrics.conversions,
+                },
+                indent=2,
+                default=str,
+            )
+        )
 
     lines = [
         f"=== Campaign {campaign_id} Performance: {start} to {end} ===",
@@ -384,20 +388,26 @@ def _get_account_summary(
         per_campaign.append({"name": row.campaign.name, "spend": _micros_dollars(c)})
 
     if output_format == "json":
-        return _text(json.dumps({
-            "period": {"start": start, "end": end},
-            "totals": {
-                "spend": _micros_dollars(total_cost),
-                "clicks": total_clicks,
-                "impressions": total_impr,
-                "conversions": total_conv,
-                "ctr": (total_clicks / total_impr) if total_impr > 0 else None,
-                "cost_per_conv": (
-                    float(_micros_dollars(total_cost)) / total_conv if total_conv > 0 else None
-                ),
-            },
-            "campaigns": per_campaign,
-        }, indent=2, default=str))
+        return _text(
+            json.dumps(
+                {
+                    "period": {"start": start, "end": end},
+                    "totals": {
+                        "spend": _micros_dollars(total_cost),
+                        "clicks": total_clicks,
+                        "impressions": total_impr,
+                        "conversions": total_conv,
+                        "ctr": (total_clicks / total_impr) if total_impr > 0 else None,
+                        "cost_per_conv": (
+                            float(_micros_dollars(total_cost)) / total_conv if total_conv > 0 else None
+                        ),
+                    },
+                    "campaigns": per_campaign,
+                },
+                indent=2,
+                default=str,
+            )
+        )
 
     lines = [f"=== Google Ads Account Summary: {start} to {end} ===", ""]
     if not rows:
@@ -411,9 +421,9 @@ def _get_account_summary(
         lines.append(f"TOTAL IMPRESSIONS: {total_impr:,}")
         lines.append(f"TOTAL CONVERSIONS: {total_conv}")
         if total_impr > 0:
-            lines.append(f"AVG CTR:           {(total_clicks/total_impr*100):.2f}%")
+            lines.append(f"AVG CTR:           {(total_clicks / total_impr * 100):.2f}%")
         if total_conv > 0:
-            lines.append(f"COST PER CONV:     ${float(_micros_dollars(total_cost))/total_conv:.2f}")
+            lines.append(f"COST PER CONV:     ${float(_micros_dollars(total_cost)) / total_conv:.2f}")
     return _text("\n".join(lines))
 
 

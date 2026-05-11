@@ -27,8 +27,7 @@ async def list_tools() -> list[Tool]:
     metadata = get_tools_metadata()
     logger.info("Listing %d tools", len(metadata))
     return [
-        Tool(name=m["name"], description=m["description"], inputSchema=m["inputSchema"])
-        for m in metadata
+        Tool(name=m["name"], description=m["description"], inputSchema=m["inputSchema"]) for m in metadata
     ]
 
 

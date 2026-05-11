@@ -42,6 +42,7 @@ def sample_service_account() -> dict:
 @pytest.fixture
 def write_credentials(credentials_dir: Path, sample_service_account: dict):
     """Helper to drop credential files into the fake creds dir."""
+
     def _write(name: str, content) -> Path:
         path = credentials_dir / name
         if isinstance(content, (dict, list)):
@@ -49,4 +50,5 @@ def write_credentials(credentials_dir: Path, sample_service_account: dict):
         else:
             path.write_text(str(content), encoding="utf-8")
         return path
+
     return _write

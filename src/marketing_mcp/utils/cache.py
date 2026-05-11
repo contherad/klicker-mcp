@@ -75,10 +75,10 @@ class ScopedCache:
 
 # Pre-configured caches per integration.
 # Tune TTLs based on how often the data changes.
-ANALYTICS_METADATA_CACHE = ScopedCache("analytics_metadata", ttl_seconds=600)   # 10 min
-GTM_METADATA_CACHE = ScopedCache("gtm_metadata", ttl_seconds=600)               # 10 min
-ADS_QUERY_CACHE = ScopedCache("ads_query", ttl_seconds=300)                     # 5 min
-AHREFS_CACHE = ScopedCache("ahrefs", ttl_seconds=3600)                          # 1 hr (paid credits)
+ANALYTICS_METADATA_CACHE = ScopedCache("analytics_metadata", ttl_seconds=600)  # 10 min
+GTM_METADATA_CACHE = ScopedCache("gtm_metadata", ttl_seconds=600)  # 10 min
+ADS_QUERY_CACHE = ScopedCache("ads_query", ttl_seconds=300)  # 5 min
+AHREFS_CACHE = ScopedCache("ahrefs", ttl_seconds=3600)  # 1 hr (paid credits)
 
 
 __all__ = [

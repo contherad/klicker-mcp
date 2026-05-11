@@ -163,9 +163,7 @@ def _cached_get(endpoint: str, params: dict[str, Any], api_key: str) -> dict[str
 # ---------- handler ----------
 
 
-async def handle_ahrefs_tool(
-    tool_name: str, arguments: dict[str, Any], config: Config
-) -> dict[str, Any]:
+async def handle_ahrefs_tool(tool_name: str, arguments: dict[str, Any], config: Config) -> dict[str, Any]:
     api_key = config.ahrefs.api_key
     if not api_key:
         return _text(
@@ -314,8 +312,16 @@ def _format_backlinks(rows: list[dict[str, Any]]) -> dict[str, Any]:
         lines.append(header)
         lines.append("-" * len(header))
         for b in rows:
-            src = b.get("url_from", b.get("source", {}).get("url", "")) if isinstance(b.get("source"), dict) else b.get("url_from", "")
-            tgt = b.get("url_to", b.get("target", {}).get("url", "")) if isinstance(b.get("target"), dict) else b.get("url_to", "")
+            src = (
+                b.get("url_from", b.get("source", {}).get("url", ""))
+                if isinstance(b.get("source"), dict)
+                else b.get("url_from", "")
+            )
+            tgt = (
+                b.get("url_to", b.get("target", {}).get("url", ""))
+                if isinstance(b.get("target"), dict)
+                else b.get("url_to", "")
+            )
             dr = b.get("domain_rating_source", b.get("domain_rating", b.get("DR", "?")))
             df = "yes" if b.get("is_dofollow", b.get("do_follow", b.get("dofollow", False))) else "no"
             lines.append(f"{str(src)[:53]:<55} {str(tgt)[:33]:<35} {dr!s:<4} {df}")

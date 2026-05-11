@@ -39,9 +39,9 @@ def test_doctor_passes_with_all_credentials(tmp_path: Path) -> None:
     }
     (creds / "google-analytics-credentials.json").write_text(json.dumps(sa))
     (creds / "google-tag-manager-credentials.json").write_text(json.dumps(sa))
-    (creds / "google-ads-credentials.json").write_text(json.dumps({
-        "developer_token": "x", "client_id": "x", "client_secret": "x", "refresh_token": "x"
-    }))
+    (creds / "google-ads-credentials.json").write_text(
+        json.dumps({"developer_token": "x", "client_id": "x", "client_secret": "x", "refresh_token": "x"})
+    )
     (creds / "ahrefs-api-key.txt").write_text("key")
 
     result = runner.invoke(cli, ["doctor", "--credentials-dir", str(creds)])

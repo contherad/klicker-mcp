@@ -17,12 +17,7 @@ from .tagmanager import get_tagmanager_tools, handle_tagmanager_tool
 
 
 def get_all_tools() -> list[dict[str, Any]]:
-    return (
-        get_analytics_tools()
-        + get_ads_tools()
-        + get_tagmanager_tools()
-        + get_ahrefs_tools()
-    )
+    return get_analytics_tools() + get_ads_tools() + get_tagmanager_tools() + get_ahrefs_tools()
 
 
 # Map tool prefix -> handler. Avoids the giant explicit name -> handler table.

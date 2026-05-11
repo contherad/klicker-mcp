@@ -99,7 +99,7 @@ if "%ALL_DONE%"=="1" (
     echo ================================================
     echo.
     echo 1. Open Claude Desktop
-    echo 2. Go to Settings (wrench icon) -^> MCP Servers
+    echo 2. Go to Settings - MCP Servers
     echo 3. Click "Add MCP Server"
     echo 4. Fill in:
     echo.
